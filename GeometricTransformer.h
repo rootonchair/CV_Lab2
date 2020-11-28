@@ -46,13 +46,12 @@ public:
 
 		for (int c = 0; c < nChannels; c++) {
 			uchar topLeft = *(pSrc + srcWidthStep * (int)ty + nChannels * (int)tx + c);
-			uchar topRight = *(pSrc + srcWidthStep * (int)ty + nChannels * (int)(tx + 1) + c);//(floorf(tx) == tx ? 0 : *(pSrc + srcWidthStep * int(ty) + nChannels * int(tx + 1) + c));
+			uchar topRight = (floorf(tx) == tx ? 0 : *(pSrc + srcWidthStep * (int)ty + nChannels * (int)(tx + 1) + c)); // Tránh truy cập vùng nhớ không được phép
 			uchar bottomLeft = *(pSrc + srcWidthStep * (int)(ty + 1) + nChannels * (int)tx + c);
-			uchar bottomRight = *(pSrc + srcWidthStep * (int)(ty + 1) + nChannels * (int)(tx + 1) + c);//(floorf(ty) == ty ? 0 : *(pSrc + srcWidthStep * int(ty + 1) + nChannels * int(tx + 1) + c));
+			uchar bottomRight = (floorf(ty) == ty ? 0 : *(pSrc + srcWidthStep * (int)(ty + 1) + nChannels * (int)(tx + 1) + c)); // Tránh truy cập vùng nhớ không được phép
 			uchar topVal = (uchar)((1.0 - a)*topLeft + a * topRight);
 			uchar bottomVal = (uchar)((1.0 - a)*bottomLeft + a * bottomRight);
 			returnedVal[c] = (1 - b)*topVal + b * bottomVal;
-			//TODO: final row has problem
 		}
 		
 	}
