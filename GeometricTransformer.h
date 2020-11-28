@@ -1,4 +1,9 @@
 ﻿#pragma once
+#include <iostream>
+#include "opencv2/opencv.hpp"
+
+using namespace cv;
+
 /*
  Lớp base dùng để nội suy màu của 1 pixel
 */
@@ -10,15 +15,22 @@ public:
 	Tham số
 		- (tx,ty): tọa độ thực của ảnh gốc sau khi thực hiện phép biến đổi affine
 		- pSrc: con trỏ ảnh gốc
+		- returnedVal: con trỏ nhận giá trị nội suy được
 		- srcWidthStep: widthstep của ảnh gốc
 		- nChannels: số kênh màu của ảnh gốc
-	Trả về
-		- Giá trị màu được nội suy
 	*/
-	virtual uchar Interpolate(
-		float tx, float ty, uchar* pSrc, int srcWidthStep, int nChannels) = 0;
-	PixelInterpolate();
-	~PixelInterpolate();
+	virtual void Interpolate(
+		float tx, float ty, uchar* pSrc, uchar* returnedVal, int srcWidthStep, int nChannels) = 0;
+	
+	PixelInterpolate() 
+	{
+
+	}
+
+	virtual ~PixelInterpolate() 
+	{
+
+	}
 };
 
 /*
@@ -27,7 +39,7 @@ Lớp nội suy màu theo phương pháp song tuyến tính
 class BilinearInterpolate : public PixelInterpolate
 {
 public:
-	uchar Interpolate(float tx, float ty, uchar* pSrc, int srcWidthStep, int nChannels);
+	void Interpolate(float tx, float ty, uchar* pSrc, uchar* returnedVal, int srcWidthStep, int nChannels);
 	BilinearInterpolate();
 	~BilinearInterpolate();
 };
@@ -38,9 +50,27 @@ Lớp nội suy màu theo phương pháp láng giềng gần nhất
 class NearestNeighborInterpolate : public PixelInterpolate
 {
 public:
-	uchar Interpolate(float tx, float ty, uchar* pSrc, int srcWidthStep, int nChannels);
-	NearestNeighborInterpolate();
-	~NearestNeighborInterpolate();
+	void Interpolate(float tx, float ty, uchar* pSrc, uchar* returnedVal, int srcWidthStep, int nChannels)
+	{
+		int nearestX = (int)(tx + 0.5f);
+		int nearestY = (int)(ty + 0.5f);
+
+		uchar* neighborPixel = pSrc + nearestY * srcWidthStep + nearestX * nChannels;
+
+		for (int i = 0; i < nChannels; i++) {
+			returnedVal[i] = neighborPixel[i];
+		}
+	}
+
+	NearestNeighborInterpolate() 
+	{
+
+	}
+
+	~NearestNeighborInterpolate() 
+	{
+
+	}
 };
 
 /*
@@ -71,7 +101,7 @@ public:
 	Tham số
 	 - beforeImage: ảnh gốc trước khi transform
 	 - afterImage: ảnh sau khi thực hiện phép biến đổi affine
-	 - transformer: phép biến đổi affine
+	 - transformer: phép biến đổi affine ngược
 	 - interpolator: biến chỉ định phương pháp nội suy màu
 	Trả về:
 	 - 0: Nếu ảnh input ko tồn tại hay ko thực hiện được phép biến đổi
@@ -160,7 +190,7 @@ public:
 	int Flip(
 		const Mat &srcImage, 
 		Mat &dstImage, 
-		bool direction 
+		bool direction,
 		PixelInterpolate* interpolator);
 
 	GeometricTransformer();
