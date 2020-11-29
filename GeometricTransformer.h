@@ -216,6 +216,21 @@ public:
 		return 1;
 	}
 
+
+	void transformAndFindMaxMin(AffineTransform& transformer, float x, float y, float &xmax, float &xmin, float &ymax, float &ymin) 
+	{
+		transformer.TransformPoint(x, y);
+		if (x < xmin)
+			xmin = x;
+		else if (x > xmax)
+			xmax = x;
+
+		if (y < ymin)
+			ymin = y;
+		else if (y > ymax)
+			ymax = y;
+	}
+
 	/*
 	Hàm xoay bảo toàn nội dung ảnh theo góc xoay cho trước
 	Tham số
@@ -228,7 +243,47 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int RotateKeepImage(
-		const Mat &srcImage, Mat &dstImage, float angle, PixelInterpolate* interpolator);
+		const Mat &srcImage, Mat &dstImage, float angle, PixelInterpolate* interpolator)
+	{
+		/*
+			Để tìm width và height của ảnh kết quả, thuật toán:
+				- Xây dựng một affine xuôi và đưa tọa độ bốn góc của ảnh gốc để có kết quả
+				- Tìm x và y lớn nhất và nhỏ nhất để biết width và height cần có
+		*/
+		AffineTransform forwardTransformer;
+		forwardTransformer.Translate(-srcImage.cols / 2.0f, -srcImage.rows / 2.0f);
+		forwardTransformer.Rotate(-angle);
+
+		float maxX, minX, maxY, minY;
+		float x, y;
+		x = 0, y = 0; //top left
+		forwardTransformer.TransformPoint(x, y);
+		maxX = x, minX = x;
+		maxY = y, minY = y;
+
+		transformAndFindMaxMin(forwardTransformer, srcImage.cols - 1, 0, maxX, minX, maxY, minY); // top right
+		transformAndFindMaxMin(forwardTransformer, 0, srcImage.rows - 1, maxX, minX, maxY, minY); // bottom left
+		transformAndFindMaxMin(forwardTransformer, srcImage.cols - 1, srcImage.rows - 1, maxX, minX, maxY, minY); // bottom right
+
+		int dstWidth = (int)(maxX - minX + 0.5f);
+		int dstHeight = (int)(maxY - minY + 0.5f);
+
+		dstImage = Mat(dstHeight, dstWidth, srcImage.type(), Scalar(0));
+
+		/*
+			Phép affine xuôi sẽ có trình tự là:
+				- dời ảnh về -width/2 và -height/2 của ảnh gốc
+				- xoay ảnh theo hướng -angle do trái ngược về hệ trục tọa độ
+				- dời ảnh về  width/2 và height/2 của ảnh kết quả (để không bị mất nội dung ảnh)
+		*/
+		AffineTransform backwardTransform;
+		backwardTransform.Translate(-dstWidth / 2.0f, -dstHeight / 2.0f);
+		backwardTransform.Rotate(angle);
+		backwardTransform.Translate(srcImage.cols / 2.0f, srcImage.rows / 2.0f);
+
+		return this->Transform(srcImage, dstImage, &backwardTransform, interpolator);
+
+	}
 
 	/*
 	Hàm xoay không bảo toàn nội dung ảnh theo góc xoay cho trước
