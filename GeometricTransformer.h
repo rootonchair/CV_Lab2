@@ -103,13 +103,65 @@ class AffineTransform
 {
 	Mat _matrixTransform;//ma trận 3x3 biểu diễn phép biến đổi affine
 public:
-	void Translate(float dx, float dy);// xây dựng matrix transform cho phép tịnh tiến theo vector (dx,dy)
-	void Rotate(float angle);//xây dựng matrix transform cho phép xoay 1 góc angle
-	void Scale(float sx, float sy);//xây dựng matrix transform cho phép tỉ lệ theo hệ số 		
-	void TransformPoint(float &x, float &y);//transform 1 điểm (x,y) theo matrix transform đã có
-	
-	AffineTransform();
-	~AffineTransform();
+	void Translate(float dx, float dy)// xây dựng matrix transform cho phép tịnh tiến theo vector (dx,dy)
+	{
+		float translateMatrixData[9] =
+		{
+			1.0f, 0.0f,   dx,
+			0.0f, 1.0f,   dy,
+			0.0f, 0.0f, 1.0f
+		};
+
+		Mat translateMatrix(3, 3, CV_32FC1, translateMatrixData);
+		this->_matrixTransform = translateMatrix * this->_matrixTransform;
+	}
+
+	void Rotate(float angle)//xây dựng matrix transform cho phép xoay 1 góc angle ngược chiều kim đồng hồ
+	{
+		float angleInRadian = angle * CV_PI / 180.0f;
+		float rotateMatrixData[9] =
+		{
+			cos(angleInRadian), -sin(angleInRadian), 0.0f,
+			sin(angleInRadian),  cos(angleInRadian), 0.0f,
+						  0.0f,                0.0f, 1.0f
+		};
+
+		Mat rotateMatrix(3, 3, CV_32FC1, rotateMatrixData);
+		this->_matrixTransform = rotateMatrix * this->_matrixTransform;
+	}
+
+	void Scale(float sx, float sy)//xây dựng matrix transform cho phép tỉ lệ theo hệ số
+	{
+		float scaleMatrixData[9] =
+		{
+			  sx, 0.0f, 0.0f,
+			0.0f,   sy, 0.0f,
+			0.0f, 0.0f, 1.0f
+		};
+
+		Mat scaleMatrix(3, 3, CV_32FC1, scaleMatrixData);
+		this->_matrixTransform = scaleMatrix * this->_matrixTransform;
+	}
+
+	void TransformPoint(float &x, float &y)//transform 1 điểm (x,y) theo matrix transform đã có
+	{
+		float pointData[3] = { x, y, 1.0 };
+
+		Mat point = Mat(3, 1, CV_32FC1, pointData);
+		Mat result = this->_matrixTransform * point;
+
+		x = result.ptr<float>(0)[0];
+		y = result.ptr<float>(1)[0];
+	}
+
+	AffineTransform()
+	{
+		this->_matrixTransform = Mat::eye(3, 3, CV_32FC1);
+	}
+	~AffineTransform()
+	{
+
+	}
 };
 
 /*
