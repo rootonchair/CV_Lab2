@@ -228,10 +228,40 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int Scale(
-		const Mat &srcImage, 
-		Mat &dstImage, 
-		float sx, float sy, 
-		PixelInterpolate* interpolator);
+		const Mat &srcImage,
+		Mat &dstImage,
+		float sx, float sy,
+		PixelInterpolate* interpolator)
+	{
+		if (sx < FLT_EPSILON || sy < FLT_EPSILON)
+			return 0;
+		int dstRows = (int)(srcImage.rows * sy + 0.5f);
+		int dstCols = (int)(srcImage.cols * sx + 0.5f);
+		dstImage = Mat(dstRows, dstCols, srcImage.type());
+
+		uchar* resultPixel = new uchar[srcImage.channels()];
+		for (int row = 0; row < dstRows; row++)
+		{
+			for (int col = 0; col < dstCols; col++)
+			{
+				float orgX = col / sx;
+				float orgY = row / sy;
+				if (orgX > srcImage.cols - 1)
+					orgX = srcImage.cols - 1;
+				if (orgY > srcImage.rows - 1)
+					orgY = srcImage.rows - 1;
+
+				interpolator->Interpolate(orgX, orgY, srcImage.data, resultPixel, srcImage.step[0], srcImage.step[1]);
+				uchar* currentPixel = dstImage.data + dstImage.step[0] * row + dstImage.step[1] * col;
+				for (int c = 0; c < srcImage.channels(); c++) {
+					currentPixel[c] = resultPixel[c];
+				}
+			}
+		}
+
+		delete[] resultPixel;
+		return 1;
+	}
 		
 	
 	/*
@@ -268,7 +298,14 @@ public:
 		bool direction,
 		PixelInterpolate* interpolator);
 
-	GeometricTransformer();
-	~GeometricTransformer();
+	GeometricTransformer() 
+	{
+
+	}
+
+	~GeometricTransformer() 
+	{
+
+	}
 };
 
