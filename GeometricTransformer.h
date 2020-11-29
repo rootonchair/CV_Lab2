@@ -242,7 +242,27 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int RotateUnkeepImage(
-		const Mat &srcImage, Mat &dstImage, float angle, PixelInterpolate* interpolator);
+		const Mat &srcImage, Mat &dstImage, float angle, PixelInterpolate* interpolator)
+	{
+		dstImage = Mat(srcImage.rows, srcImage.cols, srcImage.type(), Scalar(0));
+		AffineTransform transformer;
+		/*
+		Để xoay ảnh cần:
+			- trừ w/2 và h/2 để đưa ảnh về gốc tọa độ
+			- xoay ảnh theo góc -angle (vì hệ trục bị ngược xuống)
+			- cộng w/2 và h/2 để đưa ảnh về vị trí ban đầu
+
+		Vậy affine ngược sẽ là:
+			- cộng w/2 và h/2 để đưa ảnh về gốc tọa độ
+			- xoay ảnh theo góc -angle (vì hệ trục bị ngược xuống)
+			- cộng w/2 và h/2 để đưa ảnh về vị trí ban đầu
+			
+		*/
+		transformer.Translate(-srcImage.cols / 2.0f, -srcImage.rows / 2.0f);
+		transformer.Rotate(angle);
+		transformer.Translate(srcImage.cols / 2.0f, srcImage.rows / 2.0f);
+		return this->Transform(srcImage, dstImage, &transformer, interpolator);
+	}
 
 	/*
 	Hàm phóng to, thu nhỏ ảnh theo tỉ lệ cho trước
