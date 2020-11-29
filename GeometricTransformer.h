@@ -276,10 +276,38 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int Resize(
-		const Mat &srcImage, 
-		Mat &dstImage, 
-		int newWidth, int newHeight, 
-		PixelInterpolate* interpolator);
+		const Mat &srcImage,
+		Mat &dstImage,
+		int newWidth, int newHeight,
+		PixelInterpolate* interpolator)
+	{
+		if (newWidth <= 0 || newHeight <= 0)
+			return 0;
+		dstImage = Mat(newHeight, newWidth, srcImage.type());
+
+		uchar* resultPixel = new uchar[srcImage.channels()];
+		for (int row = 0; row < newHeight; row++)
+		{
+			for (int col = 0; col < newWidth; col++)
+			{
+				float orgX = 1.0f * col * (srcImage.cols - 1) / (newWidth - 1);
+				float orgY = 1.0f * row * (srcImage.rows - 1) / (newHeight - 1);
+				if (orgX > srcImage.cols - 1)
+					orgX = srcImage.cols - 1;
+				if (orgY > srcImage.rows - 1)
+					orgY = srcImage.rows - 1;
+
+				interpolator->Interpolate(orgX, orgY, srcImage.data, resultPixel, srcImage.step[0], srcImage.step[1]);
+				uchar* currentPixel = dstImage.data + dstImage.step[0] * row + dstImage.step[1] * col;
+				for (int c = 0; c < srcImage.channels(); c++) {
+					currentPixel[c] = resultPixel[c];
+				}
+			}
+		}
+
+		delete[] resultPixel;
+		return 1;
+	}
 
 	/*
 	Hàm lấy đối xứng ảnh
