@@ -183,10 +183,38 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int Transform(
-		const Mat &beforeImage, 
-		Mat &afterImage, 
-		AffineTransform* transformer, 
-		PixelInterpolate* interpolator);
+		const Mat &beforeImage,
+		Mat &afterImage,
+		AffineTransform* transformer,
+		PixelInterpolate* interpolator)
+	{
+
+		uchar* resultPixel = new uchar[beforeImage.channels()];
+		for (int row = 0; row < afterImage.rows; row++)
+		{
+			for (int col = 0; col < afterImage.rows; col++)
+			{
+				float orgX = col;
+				float orgY = row;
+
+				transformer->TransformPoint(orgX, orgY);
+				if (orgX > beforeImage.cols - 1 || orgX < 0)
+					continue;
+
+				if (orgY > beforeImage.rows - 1 || orgY < 0)
+					continue;
+
+				interpolator->Interpolate(orgX, orgY, beforeImage.data, resultPixel, beforeImage.step[0], beforeImage.step[1]);
+				uchar* currentPixel = afterImage.data + afterImage.step[0] * row + afterImage.step[1] * col;
+				for (int c = 0; c < beforeImage.channels(); c++) {
+					currentPixel[c] = resultPixel[c];
+				}
+			}
+		}
+
+		delete[] resultPixel;
+		return 1;
+	}
 
 	/*
 	Hàm xoay bảo toàn nội dung ảnh theo góc xoay cho trước
