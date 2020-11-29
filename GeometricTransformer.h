@@ -321,10 +321,38 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int Flip(
-		const Mat &srcImage, 
-		Mat &dstImage, 
+		const Mat &srcImage,
+		Mat &dstImage,
 		bool direction,
-		PixelInterpolate* interpolator);
+		PixelInterpolate* interpolator)
+	{
+		if (direction > 1)
+			return 0;
+
+		dstImage = Mat(srcImage.rows, srcImage.cols, srcImage.type());
+
+		for (int row = 0; row < dstImage.rows; row++) {
+			for (int col = 0; col < dstImage.cols; col++) {
+				int srcX, srcY;
+				if (direction == 0) {
+					srcX = dstImage.cols - 1 - col;
+					srcY = row;
+				}
+				else if (direction == 1) {
+					srcX = col;
+					srcY = dstImage.rows - 1 - row;
+				}
+
+				uchar* srcPixel = srcImage.data + srcY * srcImage.step[0] + srcX * srcImage.step[1];
+				uchar* dstPixel = dstImage.data + row * dstImage.step[0] + col * dstImage.step[1];
+
+				for (int c = 0; c < dstImage.channels(); c++) {
+					dstPixel[c] = srcPixel[c];
+				}
+			}
+		}
+		return 1;
+	}
 
 	GeometricTransformer() 
 	{
