@@ -170,6 +170,13 @@ Lớp thực hiện phép biến đổi hình học trên ảnh
 
 class GeometricTransformer
 {
+private:
+
+	bool imageNotExist(const Mat& image)
+	{
+		return image.data == NULL;
+	}
+
 public:
 	/*
 	Hàm biến đổi ảnh theo 1 phép biến đổi affine đã có
@@ -188,6 +195,8 @@ public:
 		AffineTransform* transformer,
 		PixelInterpolate* interpolator)
 	{
+		if (imageNotExist(beforeImage))
+			return 0;
 
 		uchar* resultPixel = new uchar[beforeImage.channels()];
 		for (int row = 0; row < afterImage.rows; row++)
@@ -245,6 +254,9 @@ public:
 	int RotateKeepImage(
 		const Mat &srcImage, Mat &dstImage, float angle, PixelInterpolate* interpolator)
 	{
+		if (imageNotExist(srcImage))
+			return 0;
+
 		/*
 			Để tìm width và height của ảnh kết quả, thuật toán:
 				- Xây dựng một affine xuôi và đưa tọa độ bốn góc của ảnh gốc để có kết quả
@@ -299,6 +311,10 @@ public:
 	int RotateUnkeepImage(
 		const Mat &srcImage, Mat &dstImage, float angle, PixelInterpolate* interpolator)
 	{
+
+		if (imageNotExist(srcImage))
+			return 0;
+
 		dstImage = Mat(srcImage.rows, srcImage.cols, srcImage.type(), Scalar(0));
 		AffineTransform transformer;
 		/*
@@ -336,6 +352,10 @@ public:
 		float sx, float sy,
 		PixelInterpolate* interpolator)
 	{
+
+		if (imageNotExist(srcImage))
+			return 0;
+
 		if (sx < FLT_EPSILON || sy < FLT_EPSILON)
 			return 0;
 		int dstRows = (int)(srcImage.rows * sy + 0.5f);
@@ -384,6 +404,10 @@ public:
 		int newWidth, int newHeight,
 		PixelInterpolate* interpolator)
 	{
+
+		if (imageNotExist(srcImage))
+			return 0;
+
 		if (newWidth <= 0 || newHeight <= 0)
 			return 0;
 		dstImage = Mat(newHeight, newWidth, srcImage.type());
@@ -429,6 +453,10 @@ public:
 		bool direction,
 		PixelInterpolate* interpolator)
 	{
+
+		if (imageNotExist(srcImage))
+			return 0;
+
 		if (direction > 1)
 			return 0;
 
