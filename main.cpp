@@ -91,7 +91,9 @@ int main(int argc, char* argv[])
 		}
 
 		namedWindow("Result");
+		namedWindow("Original");
 		imshow("Result", resultImage);
+		imshow("Original", orgImage);
 		waitKey(0);
 	}
 	catch (std::string errMsg) {
