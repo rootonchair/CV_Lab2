@@ -201,7 +201,7 @@ public:
 		uchar* resultPixel = new uchar[beforeImage.channels()];
 		for (int row = 0; row < afterImage.rows; row++)
 		{
-			for (int col = 0; col < afterImage.rows; col++)
+			for (int col = 0; col < afterImage.cols; col++)
 			{
 				float orgX = col;
 				float orgY = row;
